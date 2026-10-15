@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>交流分析 実践リファレンス</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&display=swap">
+<style>
+/* Layout: 1カラムの縦スクロール。交流図（P・A・Cの円と矢印）を全体の視覚言語として繰り返す */
+:root{
+  --bg:#F6F1E7; --surface:#FFFDF8; --surface-2:#EFE8DA; --line:#D9CFBD;
+  --ink:#1B2A38; --ink-soft:#4A5866; --navy:#1B2A38; --on-navy:#F6F1E7; --on-navy-soft:#C9D2DA;
+  --teal:#1E6E66; --teal-soft:#DCEBE8; --amber:#B97D33; --amber-soft:#F4E6D2; --rust:#9C4A3C; --rust-soft:#F3E0DB;
+  --serif:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;
+  --sans:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --measure:40em;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121B24; --surface:#1A2632; --surface-2:#22303D; --line:#33424F;
+  --ink:#ECE6DA; --ink-soft:#AEB8C2; --navy:#0C141B; --on-navy:#ECE6DA; --on-navy-soft:#AEB8C2;
+  --teal:#5FB3A8; --teal-soft:#1D3A38; --amber:#D9A35E; --amber-soft:#3A2E1E; --rust:#D88A78; --rust-soft:#3E2622;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121B24; --surface:#1A2632; --surface-2:#22303D; --line:#33424F;
+  --ink:#ECE6DA; --ink-soft:#AEB8C2; --navy:#0C141B; --on-navy:#ECE6DA; --on-navy-soft:#AEB8C2;
+  --teal:#5FB3A8; --teal-soft:#1D3A38; --amber:#D9A35E; --amber-soft:#3A2E1E; --rust:#D88A78; --rust-soft:#3E2622;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.85;-webkit-font-smoothing:antialiased}
+.wrap{max-width:46rem;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--serif);text-wrap:balance;line-height:1.4;margin:0}
+h2{font-size:1.6rem}
+h3{font-size:1.15rem}
+p{margin:0}
+.stack{display:flex;flex-direction:column;gap:1.1rem}
+.prose{max-width:var(--measure)}
+small,.cap{font-size:.82rem;color:var(--ink-soft)}
+a{color:var(--teal)}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.ico{width:1.4em;height:1.4em;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* nav */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--navy);color:var(--on-navy)}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding-block:.5rem}
+.brand{font-family:var(--serif);font-size:.95rem;color:var(--on-navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tocbtn{display:inline-flex;align-items:center;gap:.35rem;background:transparent;color:var(--on-navy);border:1px solid var(--on-navy-soft);border-radius:999px;padding:.25rem .8rem;font:inherit;font-size:.85rem;cursor:pointer}
+.progress{height:3px;background:var(--amber);width:0;transition:width .1s linear}
+.tocpanel{background:var(--navy);border-top:1px solid #ffffff22}
+.tocpanel ol{list-style:none;margin:0;padding-block:.5rem .8rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.15rem .8rem;max-height:45vh;overflow:auto}
+.tocpanel button{background:none;border:0;color:var(--on-navy);font:inherit;font-size:.86rem;text-align:left;padding:.25rem 0;cursor:pointer;width:100%}
+.tocpanel button span{color:var(--amber);font-variant-numeric:tabular-nums;margin-right:.45rem}
+
+/* hero */
+.hero{padding-block:3rem 2.5rem;border-bottom:1px solid var(--line)}
+.hero .wrap{display:grid;grid-template-columns:1fr auto;gap:1.5rem;align-items:center}
+.eyebrow{font-size:.78rem;letter-spacing:.14em;color:var(--teal);font-weight:700}
+.hero h1{font-size:clamp(2rem,6vw,2.9rem);margin-block:.4rem .8rem}
+.hero .lead{color:var(--ink-soft);max-width:30em}
+.hero svg{width:190px;max-width:100%}
+@media (max-width:620px){.hero .wrap{grid-template-columns:1fr}.hero svg{width:170px;justify-self:center}}
+
+/* sections */
+section.sec{padding-block:3.2rem;border-bottom:1px solid var(--line)}
+.sechead{display:flex;align-items:flex-start;gap:.8rem;margin-bottom:1.3rem}
+.secnum{font-family:var(--serif);font-size:.9rem;color:var(--amber);font-variant-numeric:tabular-nums;padding-top:.45rem;min-width:1.8rem}
+.sechead .kicker{font-size:.8rem;color:var(--teal);font-weight:700;letter-spacing:.06em}
+.badge{display:inline-flex;align-items:center;gap:.25rem;font-size:.74rem;font-weight:700;padding:.05rem .55rem;border-radius:4px;vertical-align:middle;white-space:nowrap;font-family:var(--sans)}
+.b-high{background:var(--teal-soft);color:var(--teal)}
+.b-mid{background:var(--amber-soft);color:var(--amber)}
+.b-low{background:var(--rust-soft);color:var(--rust)}
+.term{font-weight:700;color:var(--teal)}
+.say{border-left:3px solid var(--amber);padding:.2rem 0 .2rem 1rem;font-family:var(--serif)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1.1rem 1.2rem}
+.note{background:var(--rust-soft);border-radius:10px;padding:1rem 1.2rem;color:var(--ink)}
+.note h3{color:var(--rust);font-size:1rem;margin-bottom:.35rem}
+.scene{background:var(--navy);color:var(--on-navy);border-radius:12px;padding:1.2rem 1.3rem}
+.scene .lab{font-size:.75rem;letter-spacing:.12em;color:var(--amber);font-weight:700}
+.scene p{color:var(--on-navy)}
+.scene .q{font-family:var(--serif);font-size:1.25rem;margin-top:.3rem;color:var(--on-navy)}
+.scene small{color:var(--on-navy-soft)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem}
+@media (max-width:620px){.grid2,.grid3{grid-template-columns:1fr}}
+.problem{display:flex;gap:.8rem;align-items:flex-start}
+.problem .ico{color:var(--amber);margin-top:.2rem}
+
+/* timeline */
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.tl li{display:grid;grid-template-columns:5.2rem 1fr;gap:1rem;padding-block:.7rem;border-top:1px dashed var(--line)}
+.tl li:first-child{border-top:0}
+.tl .yr{font-family:var(--serif);color:var(--teal);font-variant-numeric:tabular-nums;font-weight:700}
+
+/* ego states */
+.layers{display:grid;grid-template-columns:minmax(0,1fr);gap:.6rem}
+.layer{display:grid;grid-template-columns:3.2rem 1fr;gap:1rem;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.8rem 1rem}
+.disc{width:3.2rem;height:3.2rem;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-weight:700;font-size:1.3rem;border:2px solid currentColor}
+.dP{color:var(--rust)}.dA{color:var(--teal)}.dC{color:var(--amber)}
+.fn-row{display:flex;flex-wrap:wrap;gap:.5rem}
+.fn-btn{font:inherit;font-size:.9rem;font-weight:700;padding:.45rem .9rem;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.fn-btn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.fn-panel{min-height:11rem}
+.fn-panel dl{display:grid;grid-template-columns:6.5rem 1fr;gap:.45rem 1rem;margin:.6rem 0 0}
+.fn-panel dt{font-size:.82rem;color:var(--ink-soft);font-weight:700}
+.fn-panel dd{margin:0}
+
+/* transaction */
+.tx{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:1.2rem;align-items:start}
+@media (max-width:680px){.tx{grid-template-columns:1fr}}
+.tx svg{width:100%;max-width:360px;display:block;margin:0 auto}
+@media (max-width:680px){
+  .txfig{position:sticky;top:var(--topbar-h,52px);z-index:2;background:var(--bg);padding-block:.3rem;border-bottom:1px solid var(--line)}
+  .tx svg{max-height:36vh;width:auto;max-width:100%}
+}
+.opt{display:flex;flex-direction:column;gap:.5rem}
+.opt button{text-align:left;font:inherit;font-size:.92rem;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:.6rem .8rem;cursor:pointer;line-height:1.6}
+.opt button[aria-pressed="true"]{border-color:var(--teal);background:var(--teal-soft)}
+.opt .tag{display:block;font-size:.74rem;color:var(--ink-soft);font-weight:700}
+.result{margin-top:.8rem}
+.result .type{font-family:var(--serif);font-weight:700;font-size:1.1rem}
+.rules{counter-reset:r;list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.7rem}
+.rules li{counter-increment:r;display:grid;grid-template-columns:2rem 1fr;gap:.6rem}
+.rules li::before{content:counter(r);font-family:var(--serif);font-weight:700;color:var(--bg);background:var(--teal);width:1.7rem;height:1.7rem;border-radius:50%;display:grid;place-items:center;font-size:.9rem;margin-top:.15rem}
+
+/* strokes matrix */
+.matrix{display:grid;grid-template-columns:auto repeat(2,minmax(0,1fr));gap:2px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:.9rem}
+.matrix>div{background:var(--surface);padding:.7rem .8rem}
+.matrix .h{background:var(--surface-2);font-weight:700;font-size:.82rem}
+
+/* triangle */
+.tri{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:1.2rem;align-items:center}
+@media (max-width:680px){.tri{grid-template-columns:1fr}}
+.tri svg{width:100%;max-width:320px;display:block;margin:0 auto}
+.tri svg .node{cursor:pointer}
+.tri svg .node circle{fill:var(--surface);stroke:var(--line);stroke-width:2}
+.tri svg .node.on circle{fill:var(--rust-soft);stroke:var(--rust)}
+.tri svg text{fill:var(--ink);font-family:var(--sans);font-size:14px;font-weight:700}
+
+/* quadrants */
+.quad{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}
+.quad button{font:inherit;text-align:left;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:.8rem;cursor:pointer;min-width:0}
+.quad button b{display:block;font-family:var(--serif);font-size:1.05rem}
+.quad button span{font-size:.82rem;color:var(--ink-soft)}
+.quad button[aria-pressed="true"]{border-color:var(--amber);background:var(--amber-soft)}
+
+/* details */
+details{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+details+details{margin-top:.5rem}
+summary{cursor:pointer;padding:.75rem 1rem;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:1rem}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--teal);font-weight:700}
+details[open] summary::after{content:"−"}
+details .in{padding:0 1rem 1rem}
+
+/* table */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.88rem;background:var(--surface)}
+th,td{padding:.6rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--surface-2);font-size:.8rem}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:700;white-space:nowrap}
+
+/* charts */
+.chart{overflow-x:auto}
+.chart svg{display:block;width:100%;min-width:520px;height:auto}
+.chart text{font-family:var(--sans);fill:var(--ink)}
+
+/* can / cannot */
+.cc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+@media (max-width:620px){.cc{grid-template-columns:1fr}}
+.cc ul{margin:.5rem 0 0;padding-left:1.1rem;display:flex;flex-direction:column;gap:.45rem}
+.cc .yes h3{color:var(--teal)} .cc .no h3{color:var(--rust)}
+
+/* dark band summary */
+.band{background:var(--navy);color:var(--on-navy)}
+.band h2,.band p,.band li{color:var(--on-navy)}
+.band .secnum{color:var(--amber)}
+.band .kicker{color:var(--amber)}
+.band ol{margin:0;padding-left:1.2rem;display:flex;flex-direction:column;gap:.6rem}
+
+.refs{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.75rem;font-size:.88rem}
+.refs li{padding-left:1rem;border-left:2px solid var(--line);overflow-wrap:anywhere}
+footer{padding-block:2rem 3rem;color:var(--ink-soft);font-size:.85rem}
+
+.reveal{transition:opacity .6s ease,transform .6s ease}
+.reveal.pre{opacity:0;transform:translateY(14px)}
+@media (prefers-reduced-motion:reduce){.reveal,.reveal.pre{transition:none;opacity:1;transform:none}.progress{transition:none}}
+</style>
+</head>
+<body>
+
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-talk" viewBox="0 0 24 24"><path d="M4 5h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M17 9h3a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1v3l-3-3h-3"/></symbol>
+  <symbol id="i-loop" viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M3 11V9a4 4 0 0 1 4-4h13"/><path d="M7 22l-3-3 3-3"/><path d="M21 13v2a4 4 0 0 1-4 4H4"/></symbol>
+  <symbol id="i-weight" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M6 9h12l2 11H4z"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.3"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></symbol>
+</svg>
+
+<header class="topbar" id="topbar">
+  <div class="wrap">
+    <div class="brand">交流分析 実践リファレンス</div>
+    <button class="tocbtn" id="tocbtn" aria-expanded="false" aria-controls="tocpanel"><svg class="ico" style="width:1.1em;height:1.1em"><use href="#i-list"/></svg>目次</button>
+  </div>
+  <div class="tocpanel" id="tocpanel" hidden>
+    <div class="wrap">
+      <ol id="toclist"></ol>
+    </div>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+
+<main>
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">スタッフ研修資料｜就労移行支援</div>
+      <h1>交流分析<br>実践リファレンス</h1>
+      <p class="lead">会話がこじれたとき、原因を「相手の性格」に求める前に、いま交わされた一往復を分解して見る。交流分析（Transactional Analysis, TA）はそのための道具です。仕組みと使いどころ、そして根拠の強さと限界を順にたどります。</p>
+    </div>
+    <svg viewBox="0 0 200 220" role="img" aria-label="2人の自我状態P・A・Cの間を行き交う矢印の図">
+      <defs>
+        <marker id="hm1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--amber)"/></marker>
+        <marker id="hm2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--teal)"/></marker>
+      </defs>
+      <g font-family="Noto Serif JP, serif" font-weight="700" font-size="18" text-anchor="middle">
+        <circle cx="40" cy="45" r="24" style="fill:var(--surface);stroke:var(--rust)" stroke-width="2"/><text x="40" y="51" style="fill:var(--rust)">P</text>
+        <circle cx="40" cy="110" r="24" style="fill:var(--surface);stroke:var(--teal)" stroke-width="2"/><text x="40" y="116" style="fill:var(--teal)">A</text>
+        <circle cx="40" cy="175" r="24" style="fill:var(--surface);stroke:var(--amber)" stroke-width="2"/><text x="40" y="181" style="fill:var(--amber)">C</text>
+        <circle cx="160" cy="45" r="24" style="fill:var(--surface);stroke:var(--rust)" stroke-width="2"/><text x="160" y="51" style="fill:var(--rust)">P</text>
+        <circle cx="160" cy="110" r="24" style="fill:var(--surface);stroke:var(--teal)" stroke-width="2"/><text x="160" y="116" style="fill:var(--teal)">A</text>
+        <circle cx="160" cy="175" r="24" style="fill:var(--surface);stroke:var(--amber)" stroke-width="2"/><text x="160" y="181" style="fill:var(--amber)">C</text>
+      </g>
+      <line x1="64" y1="104" x2="136" y2="104" stroke-width="2.5" style="stroke:var(--amber)" marker-end="url(#hm1)"/>
+      <line x1="136" y1="118" x2="64" y2="118" stroke-width="2.5" style="stroke:var(--teal)" marker-end="url(#hm2)"/>
+    </svg>
+  </div>
+</div>
+
+<!-- 1 -->
+<section class="sec reveal" id="s1" data-toc="なぜ必要か">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">01</div><div><div class="kicker">解く問題</div><h2>なぜ「やりとり」を分解するのか</h2></div></div>
+    <p class="prose">支援の現場では、同じような会話のこじれが何度も起きます。そのとき私たちは「あの人は依存的だ」「頑固だ」と、相手の性格に説明を求めがちです。性格は変えにくいので、そこで思考が止まります。</p>
+    <div class="grid3">
+      <div class="box problem"><svg class="ico"><use href="#i-loop"/></svg><p>励ましても「でも」が返ってきて、同じ会話がぐるぐる回る</p></div>
+      <div class="box problem"><svg class="ico"><use href="#i-weight"/></svg><p>気づくとスタッフが書類も段取りも抱え込み、疲れていく</p></div>
+      <div class="box problem"><svg class="ico"><use href="#i-tag"/></svg><p>ケース会議で、言動の説明が本人への評価にすり替わる</p></div>
+    </div>
+    <p class="prose">交流分析は、説明の単位を「人」から<span class="term">一往復のやりとり</span>に移します。ある言葉が、話し手のどの心の状態から出て、聞き手のどの状態に届き、どの状態から返事が来たか。この単位なら観察でき、次の一言は変えられます。Berneがこの単位を「transaction（交流）」と名付けたのが、この理論の出発点です。</p>
+    <div class="scene">
+      <div class="lab">このページを貫く場面（架空事例）</div>
+      <p class="q">「どうせ私には無理です」</p>
+      <p style="margin-top:.5rem">利用開始から3か月のAさん。来週から模擬面接が始まると伝えた場面での一言です。以下の各セクションで、この同じ一言を少しずつ視野を広げながら読み直していきます。</p>
+      <small>Aさんは説明のための架空の人物です。特定の利用者を想定したものではありません。</small>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="sec reveal" id="s2" data-toc="成り立ち">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">02</div><div><div class="kicker">歴史</div><h2>精神分析を「口語」にした理論</h2></div></div>
+    <p class="prose">交流分析は、精神分析の訓練を受けた米国の精神科医Eric Berneが1950年代後半に提唱しました。無意識を専門家が解釈する方法に対し、Berneは目に見える言動と、治療者と本人が対等に結ぶ合意を重視しました。日本では「精神分析の口語版」と紹介されることがあります。</p>
+    <ol class="tl">
+      <li><span class="yr">1958</span><span>Berneが論文で集団療法の方法として交流分析を発表</span></li>
+      <li><span class="yr">1961</span><span>『Transactional Analysis in Psychotherapy』で体系化</span></li>
+      <li><span class="yr">1964</span><span>『Games People Play』（邦題『人生ゲーム入門』）が一般向けにも広く読まれる</span></li>
+      <li><span class="yr">1968</span><span>Karpmanがドラマ三角形を発表</span></li>
+      <li><span class="yr">1972</span><span>Dusayがエゴグラムを発表。同年、九州大学医学部心療内科の池見・杉田が心身症・神経症の心理療法として日本に導入</span></li>
+      <li><span class="yr">その後</span><span>東京大学医学部心療内科の研究グループが質問紙「東大式エゴグラム（TEG）」を開発し、改訂を重ねる。医療に加え、職場の適性判定や研修にも広がる</span></li>
+      <li><span class="yr">2021–22</span><span>Vos & van Rijnが尺度の系統的レビューと、効果研究のメタ分析を発表</span></li>
+    </ol>
+    <details>
+      <summary>TAは一枚岩ではない：主な学派</summary>
+      <div class="in stack">
+        <p>Berneの古典的TAから、いくつもの学派が分かれました。子ども時代の決断を今ここで決め直す<b>再決断派</b>（Goulding夫妻、ゲシュタルト療法を統合）、重い精神疾患を対象に治療共同体で取り組んだ<b>カセクシス派</b>（Schiff）、認知行動的な技法を組み合わせた<b>認知行動派</b>、共感的な関係を重視する<b>統合派</b>（Erskine）、精神分析の転移概念を取り入れた<b>関係派</b>などです。</p>
+        <p>どの学派も自我状態のモデルと、明示的な合意（契約）を共通の土台にしています。メタ分析では学派による効果の違いは見られませんでした。</p>
+      </div>
+    </details>
+    <p class="prose cap">一般書として普及したことが、TAの強みでもあり弱みでもあります。言葉が覚えやすい反面、「性格占い」や自己啓発の文脈で単純化されて広まった面があります。</p>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="sec reveal" id="s3" data-toc="自我状態">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">03</div><div><div class="kicker">レイヤー1｜一人の内側</div><h2>自我状態：その瞬間の「反応のモード」 <span class="badge b-mid">確度：中</span></h2></div></div>
+    <p class="prose">Berneは、人の感じ方・考え方とそれに対応する振る舞いのまとまりを<span class="term">自我状態</span>と呼び、3つに分けました。名前に「親」「子ども」とありますが、年齢や役割のことではありません。大人の利用者もスタッフも、一日のうちに3つの間を行き来します。</p>
+    <div class="layers">
+      <div class="layer"><div class="disc dP">P</div><div><h3>親（Parent）</h3><p>育つ過程で親や身近な大人から取り込んだ価値観・やり方を、そのまま再生しているモード。「〜すべき」「心配だから」。</p></div></div>
+      <div class="layer"><div class="disc dA">A</div><div><h3>成人（Adult）</h3><p>いま目の前の情報を集め、確かめ、判断しているモード。年齢とは関係なく、子どもにもあります。</p></div></div>
+      <div class="layer"><div class="disc dC">C</div><div><h3>子ども（Child）</h3><p>子ども時代に感じたこと・とった反応を、いま再体験しているモード。のびのびした感情も、顔色をうかがう反応もここに入ります。</p></div></div>
+    </div>
+    <p class="prose">この「どこから来た反応か」という見方を<span class="term">構造モデル</span>と言います。一方、外から観察できる振る舞いで分けたものが<span class="term">機能モデル</span>で、P と C をさらに2つずつに分けた5つが、のちのエゴグラムやTEGの土台になります。下のボタンで切り替えてください。</p>
+    <div class="fn-row" role="group" aria-label="機能別の自我状態">
+      <button class="fn-btn" data-fn="CP" aria-pressed="false">CP</button>
+      <button class="fn-btn" data-fn="NP" aria-pressed="true">NP</button>
+      <button class="fn-btn" data-fn="A" aria-pressed="false">A</button>
+      <button class="fn-btn" data-fn="FC" aria-pressed="false">FC</button>
+      <button class="fn-btn" data-fn="AC" aria-pressed="false">AC</button>
+    </div>
+    <div class="box fn-panel" id="fnpanel" aria-live="polite"></div>
+    <details>
+      <summary>構造の乱れ：「汚染」と「除外」</summary>
+      <div class="in stack">
+        <p>構造モデルでは、Aの判断に P や C の内容が入り込み、本人には事実に見えている状態を<span class="term">汚染</span>と呼びます。「女性は管理職に向かない」（Pの思い込みがAに入り込む）、「どうせ誰も自分を雇わない」（Cの恐れがAに入り込む）などです。ある自我状態がほとんど使われない状態は<span class="term">除外</span>と呼びます。</p>
+        <p>汚染はAが「事実として」語るので、反論しても動きにくいのが特徴です。根拠となった体験を一緒に確かめるほうが、言い合いになりにくいとされます。</p>
+      </div>
+    </details>
+    <div class="note">
+      <h3>読み違えやすい点</h3>
+      <p>どの状態にも「役に立つ出方」と「こじれる出方」があります。Pが悪くAが正しい、という話ではありません。また、自我状態は観察と本人の報告から推測する仮説的な構成概念です。行動のパターンとしては測定研究がありますが、「脳の中に3つの部分がある」ことが確かめられたわけではありません。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="sec reveal" id="s4" data-toc="やりとりの3つの型">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">04</div><div><div class="kicker">レイヤー2｜一往復</div><h2>交流：言葉の矢印には向きがある <span class="badge b-low">確度：低</span></h2></div></div>
+    <p class="prose">2人の自我状態を並べ、話し手のどこから聞き手のどこへ言葉が向かったかを矢印で描いたものが<span class="term">交流図</span>です。Berneは、この矢印の向きと会話の続き方について3つの規則を示しました。</p>
+    <ol class="rules">
+      <li><div><b>相補交流</b>：期待された状態から返事が戻ると、矢印は平行になり、会話はそのまま続く。</div></li>
+      <li><div><b>交差交流</b>：期待とは別の状態から返事が来ると、矢印が交わり、会話の流れがいったん途切れる。その後は話題や雰囲気が変わる。</div></li>
+      <li><div><b>裏面交流</b>：言葉の表の意味（社会的レベル）と、口調や表情で伝わる裏の意味（心理的レベル）が別々に送られる。結果を決めるのは裏のほう。</div></li>
+    </ol>
+    <div class="scene">
+      <div class="lab">場面を読み直す</div>
+      <p class="q">「どうせ私には無理です」</p>
+      <p style="margin-top:.4rem">Aさんの言葉は、多くの場合 C（AC）から、相手の P に向かって出ています。「そんなことないよ」と言ってほしいのか、「じゃあやめよう」と言ってほしいのかは、言葉だけでは決まりません。スタッフの返し方を選んでください。</p>
+    </div>
+    <div class="tx">
+      <div class="txfig">
+      <svg viewBox="0 0 360 272" role="img" aria-label="Aさんとスタッフの交流図。選んだ返し方に応じて矢印が変わる" id="txsvg">
+        <defs>
+          <marker id="mA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--amber)"/></marker>
+          <marker id="mT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--teal)"/></marker>
+          <marker id="mR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--rust)"/></marker>
+        </defs>
+        <g font-family="Noto Sans JP, sans-serif" font-size="13" font-weight="700" text-anchor="middle">
+          <text x="70" y="20" style="fill:var(--ink)">Aさん</text>
+          <text x="290" y="20" style="fill:var(--ink)">スタッフ</text>
+        </g>
+        <g font-family="Noto Serif JP, serif" font-weight="700" font-size="19" text-anchor="middle">
+          <circle id="cL-P" cx="70" cy="62" r="26" style="fill:var(--surface);stroke:var(--rust)" stroke-width="2"/><text x="70" y="69" style="fill:var(--rust)">P</text>
+          <circle id="cL-A" cx="70" cy="132" r="26" style="fill:var(--surface);stroke:var(--teal)" stroke-width="2"/><text x="70" y="139" style="fill:var(--teal)">A</text>
+          <circle id="cL-C" cx="70" cy="202" r="26" style="fill:var(--surface);stroke:var(--amber)" stroke-width="2"/><text x="70" y="209" style="fill:var(--amber)">C</text>
+          <circle id="cR-P" cx="290" cy="62" r="26" style="fill:var(--surface);stroke:var(--rust)" stroke-width="2"/><text x="290" y="69" style="fill:var(--rust)">P</text>
+          <circle id="cR-A" cx="290" cy="132" r="26" style="fill:var(--surface);stroke:var(--teal)" stroke-width="2"/><text x="290" y="139" style="fill:var(--teal)">A</text>
+          <circle id="cR-C" cx="290" cy="202" r="26" style="fill:var(--surface);stroke:var(--amber)" stroke-width="2"/><text x="290" y="209" style="fill:var(--amber)">C</text>
+        </g>
+        <line id="stim" stroke-width="3" stroke-linecap="round" style="stroke:var(--amber)" marker-end="url(#mA)"/>
+        <line id="resp" stroke-width="3" stroke-linecap="round" style="stroke:var(--teal)"/>
+        <line id="resp2" stroke-width="2.5" stroke-dasharray="6 5" style="stroke:var(--rust)" visibility="hidden"/>
+        <circle id="xmark" r="9" style="fill:none;stroke:var(--ink)" stroke-width="1.5" visibility="hidden"/>
+        <text id="txcap" x="180" y="246" text-anchor="middle" font-family="Noto Sans JP, sans-serif" font-size="14" font-weight="700" style="fill:var(--ink)"></text>
+        <text x="180" y="267" text-anchor="middle" font-family="Noto Sans JP, sans-serif" font-size="10.5" style="fill:var(--ink-soft)">橙＝Aさんの言葉　緑・赤＝スタッフの返事　点線＝裏のメッセージ</text>
+      </svg>
+      </div>
+      <div>
+        <div class="opt" role="group" aria-label="スタッフの返し方">
+          <button data-opt="np" aria-pressed="true"><span class="tag">NP → AC</span>「そんなことないですよ。Aさんならきっとできます」</button>
+          <button data-opt="cp" aria-pressed="false"><span class="tag">CP → AC</span>「そう言っていたら、いつまでも進めませんよ」</button>
+          <button data-opt="a" aria-pressed="false"><span class="tag">A → A</span>「無理だと感じるのは、どのあたりですか」</button>
+          <button data-opt="ul" aria-pressed="false"><span class="tag">表 A → A ／ 裏 CP → AC</span>「……で、来週の練習はどうしますか」（ため息まじりに）</button>
+        </div>
+        <div class="result box" id="txresult" aria-live="polite"></div>
+      </div>
+    </div>
+    <p class="prose cap">交差は「失敗」ではありません。意図して交差させることで、堂々めぐりの流れを切り替えられるとTAでは考えます。ただし、気持ちを受け止める前に A→A へ切り替えると、「聞いてもらえなかった」体験になりやすい点に注意が要ります。交流の規則そのものは臨床観察から導かれた記述モデルで、会話を対象に直接検証した研究は多くありません。</p>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="sec reveal" id="s5" data-toc="ストローク">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">05</div><div><div class="kicker">レイヤー2｜やりとりの中身</div><h2>ストローク：「あなたがいる」と伝える最小単位 <span class="badge b-low">確度：低</span></h2></div></div>
+    <p class="prose">TAでは、相手の存在を認める働きかけ全般を<span class="term">ストローク</span>（承認の刺激）と呼びます。あいさつ、うなずき、名前を呼ぶこと、注意、そして叱責も含まれます。人は承認を必要としており、交流はその受け渡しの場だ、というのがTAの前提です。</p>
+    <div class="matrix" role="table" aria-label="ストロークの4分類">
+      <div class="h" role="columnheader"></div><div class="h" role="columnheader">条件つき（行動に向ける）</div><div class="h" role="columnheader">無条件（存在に向ける）</div>
+      <div class="h" role="rowheader">肯定的</div><div role="cell">「履歴書の志望動機、具体的になりましたね」</div><div role="cell">「おはようございます、Aさん」<br>来所したこと自体を受け止める</div>
+      <div class="h" role="rowheader">否定的</div><div role="cell">「提出期限は守ってください」<br>行動についての指摘</div><div role="cell">「あなたはいつもそうだ」<br>人そのものの否定</div>
+    </div>
+    <p class="prose">TAには「肯定的な承認が得られないとき、人は無視されるよりは否定的な承認を求める」という仮説があります。遅刻や問題行動のときだけ注目が集まる環境では、その行動が続きやすい、という見立てです。この部分は行動分析の「注目による強化」と重なる考え方ですが、TAの仮説として直接検証されたものではありません。</p>
+    <h3>時間の構造化：ストロークをどう得るかの6段階</h3>
+    <p class="prose">Berne（1964）は、人が一緒にいる時間の過ごし方を6つに分けました。下に行くほど得られるストロークは強くなりますが、傷つく危険も大きくなるとされます。 <span class="badge b-low">確度：低</span></p>
+    <ol class="tl">
+      <li><span class="yr">引きこもり</span><span>一人で過ごす。休息にもなるが、続くと承認が枯渇する</span></li>
+      <li><span class="yr">儀式</span><span>あいさつや決まった手順。予測できて安全</span></li>
+      <li><span class="yr">雑談</span><span>天気やニュースなど当たりさわりのない話題</span></li>
+      <li><span class="yr">活動</span><span>作業や課題に一緒に取り組む。就労移行のプログラムの大半はここ</span></li>
+      <li><span class="yr">ゲーム</span><span>強いストロークが得られるが、苦い結末を伴う（セクション06）</span></li>
+      <li><span class="yr">親密</span><span>裏のない率直な感情の交換。もっとも満たされるが、無防備さも伴う</span></li>
+    </ol>
+    <p class="prose cap">休憩時間に一人でいる利用者を「孤立」と決めつけず、儀式や活動の段階で安心してストロークを得られる場が用意されているかを見る、という使い方ができます。</p>
+    <div class="box"><b>現場への翻訳</b><p style="margin-top:.3rem">注目が「できていないこと」にだけ向いていないか、事業所全体のストロークの配分を見直す。条件つきの肯定は、結果だけでなく工夫や過程に向ける。指摘が必要なときは、行動に向けた条件つきの否定にとどめ、人格への無条件の否定にしない。</p></div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="sec reveal" id="s6" data-toc="ゲームとドラマ三角形">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">06</div><div><div class="kicker">レイヤー3｜繰り返し</div><h2>ゲーム：結末の見えている繰り返し <span class="badge b-low">確度：低</span></h2></div></div>
+    <p class="prose">Berneは、裏面交流が繰り返され、最後に双方が嫌な気持ちで終わる決まった流れを<span class="term">ゲーム</span>と呼びました。遊びの意味ではなく、筋書きの決まった一連のやりとり、という意味です。本人たちはたいてい自覚していません。</p>
+    <p class="prose">代表的な例が「はい、でも」です。相談した側が助言のたびに「でも…」と断り、助言した側が疲れ、最後に「誰も分かってくれない」「結局やる気がない」と双方が苦い結論に着きます。セクション04のNPの返し方は、この入口になりやすい形です。</p>
+    <h3>ドラマ三角形（Karpman, 1968）</h3>
+    <p class="prose">ゲームの中で人が取る役割を3つの頂点で表した図です。核心は役割そのものより、<span class="term">役割が途中で入れ替わる</span>ことにあります。入れ替わりの瞬間に、こじれが表面化します。頂点を選んでください。</p>
+    <div class="tri">
+      <svg viewBox="0 0 300 270" role="img" aria-label="迫害者・救済者・犠牲者のドラマ三角形" id="trisvg">
+        <polygon points="60,60 240,60 150,220" style="fill:none;stroke:var(--line)" stroke-width="2"/>
+        <path d="M95 52 Q150 30 205 52" style="fill:none;stroke:var(--rust)" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <path d="M232 92 Q215 160 172 196" style="fill:none;stroke:var(--rust)" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <path d="M128 196 Q85 160 68 92" style="fill:none;stroke:var(--rust)" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <g class="node" data-role="per" tabindex="0" role="button" aria-label="迫害者"><circle cx="60" cy="60" r="38"/><text x="60" y="65" text-anchor="middle">迫害者</text></g>
+        <g class="node on" data-role="res" tabindex="0" role="button" aria-label="救済者"><circle cx="240" cy="60" r="38"/><text x="240" y="65" text-anchor="middle">救済者</text></g>
+        <g class="node" data-role="vic" tabindex="0" role="button" aria-label="犠牲者"><circle cx="150" cy="220" r="38"/><text x="150" y="225" text-anchor="middle">犠牲者</text></g>
+      </svg>
+      <div class="box" id="tripanel" aria-live="polite"></div>
+    </div>
+    <div class="note">
+      <h3>この図の使い方の作法</h3>
+      <p>ドラマ三角形は、利用者に「被害者ぶっている」「ゲームを仕掛けている」とラベルを貼るための道具ではありません。役割は、本人の性格からではなく、関係と環境（支援者の焦り、事業所の実績目標、制度の期限など）の中で生まれます。まず自分がどの頂点に立っているかを点検するために使うのが、最も安全な使い方です。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="sec reveal" id="s7" data-toc="基本的構えと脚本">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">07</div><div><div class="kicker">レイヤー4｜人生の長さ</div><h2>基本的構えと脚本：繰り返しを支える前提</h2></div></div>
+    <p class="prose">さらに視野を広げると、人はやりとりの土台に、自分と他者についての大まかな前提を持っているとTAは考えます。これを<span class="term">基本的構え</span>（ライフポジション）と言い、「自分はOKか」「他者はOKか」の組み合わせで4つに分けます。 <span class="badge b-mid">確度：中</span></p>
+    <div class="quad" role="group" aria-label="基本的構えの4象限">
+      <button data-q="pp" aria-pressed="true"><b>自分OK・他者OK</b><span>協力して解決へ向かう</span></button>
+      <button data-q="pm" aria-pressed="false"><b>自分OK・他者not OK</b><span>相手を責める・見下す</span></button>
+      <button data-q="mp" aria-pressed="false"><b>自分not OK・他者OK</b><span>自分を責める・引く</span></button>
+      <button data-q="mm" aria-pressed="false"><b>自分not OK・他者not OK</b><span>どうにもならないと感じる</span></button>
+    </div>
+    <div class="box" id="qpanel" aria-live="polite"></div>
+    <details>
+      <summary>値引き（ディスカウント）：問題を小さく見積もる心の動き</summary>
+      <div class="in stack">
+        <p>カセクシス派のSchiff夫妻（1971）は、問題の存在・重大さ・解決の可能性・自分の力のどれかを、本人が意識せずに軽く見積もることを<span class="term">値引き</span>と呼び、受け身の行動（何もしない、過剰に合わせる、苛立つ、動けなくなる）と結びつけました。「どうせ無理」は、自分の力を値引きしている言葉としても読めます。 <span class="badge b-low">確度：低</span></p>
+        <p>支援者側も値引きをします。「この人には難しいだろう」と先回りして選択肢を減らすのは、相手の力の値引きです。救済者の頂点はここから始まりやすいと考えられます。</p>
+      </div>
+    </details>
+    <p class="prose">TAはさらに、子ども時代に周囲からのメッセージを受けて下した決断が、人生の筋書き<span class="term">脚本</span>になると考えます。脚本は意識されにくく、ゲームはその筋書きを確かめる場面として繰り返される、という理論構成です。 <span class="badge b-low">確度：低</span></p>
+    <details>
+      <summary>ドライバー：働く場面で表に出やすい5つの「〜せねば」</summary>
+      <div class="in stack">
+        <p>Kahler & Capers（1974）は、脚本に沿った振る舞いが数秒単位で現れる合図として、次の5つを挙げました。「完全であれ」「人を喜ばせよ」「急げ」「一生懸命やれ」「強くあれ」。いずれも職場では長所として評価されやすく、そのぶん無理が見えにくくなります。</p>
+        <p>就労移行の場面では、たとえば「完全であれ」が強いと書類が仕上がらない、「人を喜ばせよ」が強いと実習先で断れない、といった形で現れることがあります。過剰適応を考えるときの手がかりにはなりますが、分類としての実証は乏しく、質問紙で因子構造を調べた研究（Rinnら, 2023）では、5つのドライバーはそのままの形では再現されませんでした。</p>
+      </div>
+    </details>
+    <div class="note">
+      <h3>ここから先は専門職の領域</h3>
+      <p>脚本や、子ども時代のメッセージ（禁止令）を掘り下げる作業は、TAでも心理療法の中核にあたります。生育歴やつらい体験に触れるため、研修を受けた専門職が、安全な枠組みの中で行うものです。支援スタッフは概念を知っておく段階にとどめ、面談で掘り下げにいかないでください。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="sec reveal" id="s8" data-toc="契約">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">08</div><div><div class="kicker">TAのもう一つの柱</div><h2>契約：変化の目標を、明示的に合意する <span class="badge b-mid">確度：中</span></h2></div></div>
+    <p class="prose">TAで見落とされがちですが、実務で最も使いやすいのがこの考え方です。Berneは、何を目指して何をするのかを、本人と支援者が明示的に、対等に合意してから始める<span class="term">契約</span>を重視しました。どのTAの学派にも共通する要素とされています。Berneは、TAが目指すものを「自律性」、すなわち気づき・自発性・親密さを取り戻すことだと述べました。契約はそのための出発点です。</p>
+    <div class="grid2">
+      <div class="box"><h3>良い契約の条件</h3><p style="margin-top:.3rem">本人の言葉で語られている／観察できる行動で書かれている／双方が合意している／達成したと分かる。個別支援計画の目標を書くときの点検項目としてそのまま使えます。</p></div>
+      <div class="box"><h3>三者契約（English, 1975）</h3><p style="margin-top:.3rem">関係者が3者以上いるとき、誰が誰に何を期待しているかを明らかにする考え方。利用者・スタッフ・事業所に、家族や実習先が加わる就労支援では、表に出ていない期待の食い違いがこじれの元になります。</p></div>
+    </div>
+    <p class="prose">根拠の面では、目標と課題について合意し、信頼関係を築くこと（作業同盟）が、学派を問わず支援の成果と関連することが多くの研究で示されています。TAの契約はその考え方と重なります。メタ分析でも、治療関係への注目は症状改善と比較的強く関連していました（r = .55）。ただしこれは研究間の比較による探索的な分析で、因果を示すものではありません。</p>
+  </div>
+</section>
+
+<!-- 9 -->
+<section class="sec reveal" id="s9" data-toc="エゴグラムとTEG">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">09</div><div><div class="kicker">測る道具</div><h2>エゴグラムとTEG：結果は「その時点の自己評価」 <span class="badge b-mid">確度：中</span></h2></div></div>
+    <p class="prose">Dusay（1972）は、5つの機能別自我状態にどれだけエネルギーを向けているかを棒グラフで表す<span class="term">エゴグラム</span>を考案しました。当初は本人や治療者の直観で描くもので、信頼性・妥当性に弱さがありました。日本のTEGは質問紙にし、多変量解析で尺度を構成したものです。TA関連の尺度56種を評価した系統的レビューでも、TEGはまずまず〜良好な質と判定された数少ない尺度の一つです。</p>
+    <div class="chart box">
+      <svg viewBox="0 0 520 220" role="img" aria-label="エゴグラムの形の例。架空のプロフィール">
+        <g id="egobars"></g>
+      </svg>
+      <p class="cap" style="margin-top:.4rem">形のイメージを示すための架空の例です。実際の得点や判定基準ではありません。</p>
+    </div>
+    <div class="grid2">
+      <div class="box"><h3>使ってよい場面</h3><p style="margin-top:.3rem">本人が自分の対人パターンを振り返るきっかけとして、本人と一緒に結果を眺める。「どこが高いか」より「本人はどう感じたか」を話題にする。</p></div>
+      <div class="box" style="border-color:var(--rust)"><h3 style="color:var(--rust)">避けるべき使い方</h3><p style="margin-top:.3rem">職種の向き不向きや採否の判定、記録での人物評価、「理想の形」への矯正。TEGはもともと診断のために作られたものではなく、気分や状況で結果は変わります。実施と解釈は、正規の検査用紙と手引に沿って、研修を受けた者が行います。</p></div>
+    </div>
+    <p class="prose cap">Dusayは「5つの合計エネルギーは一定で、一つが増えれば他が減る」という恒常仮説も唱えましたが、これは理論上の仮定です。質問紙の得点は互いに独立に動きうるため、TEGの結果をこの仮説で読むことには慎重であるべきです。 <span class="badge b-low">確度：低</span></p>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="sec reveal" id="s10" data-toc="エビデンス">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">10</div><div><div class="kicker">根拠を点検する</div><h2>効果研究：数字は大きい、しかし読み方に注意</h2></div></div>
+    <p class="prose">TAの効果研究を初めて包括的にまとめたのがVos & van Rijn（2022）のメタ分析です。41件の臨床試験を含み、ランダム化比較試験（RCT）では、TAを受けた群は対照群に比べ、どの領域でも中〜大の改善を示しました。下の図の点が平均的な効果量（Hedgesのg）、横線が95%信頼区間です。 <span class="badge b-mid">確度：中</span></p>
+    <div class="chart box">
+      <svg viewBox="0 0 600 345" role="img" aria-label="TAとの比較対照群に対する効果量と95%信頼区間" id="ci"></svg>
+      <p class="cap" style="margin-top:.4rem">出典：Vos & van Rijn（2022）Table 4「Overall」行。k＝研究数。0.2＝小、0.5＝中、0.8＝大が慣例的な目安です。</p>
+    </div>
+    <h3>この数字を割り引いて読むべき理由</h3>
+    <details open>
+      <summary>研究の質と古さ</summary>
+      <div class="in"><p>含まれた研究の多くが1970〜80年代の米国の博士論文と、2010年代以降のイランで行われた、主に30〜40人規模の研究です。研究ごとのバイアスのリスク評価で「大」とされたものも少なくありません。表には効果量7.49（自己効力感）のような極端な値の研究も含まれています。</p></div>
+    </details>
+    <details>
+      <summary>何と比べたのか</summary>
+      <div class="in"><p>対照群には待機群や通常ケアと、確立された他の治療が混在しています。「何もしないよりは良い」と「他の方法と同等以上」は別の主張ですが、この分析では区別しきれていません。</p></div>
+    </details>
+    <details>
+      <summary>長く続くのか</summary>
+      <div class="in"><p>終了後4か月を超える追跡研究が少なすぎたため、分析は短期の効果に限られています。長期的な効果は分かっていません。</p></div>
+    </details>
+    <details>
+      <summary>著者の立場と統計上の問題</summary>
+      <div class="in"><p>著者2人はTAの研修機関（ロンドンのMetanoia Institute）に所属しています。著者自身、治療者・研究者の思い入れ（アリジャンス）の影響は検討できなかったと記しています。媒介・調整因子の分析は多重比較の補正をしていない探索的なものです。さらに、本文の「RCT 13件」という記載と表に並ぶRCTの件数が一致せず、心理的症状の信頼区間（.38〜1.44）も点推定値（.61）に対して偏っており、報告の正確さに疑問が残ります。</p></div>
+    </details>
+    <details>
+      <summary>就労支援への当てはめ</summary>
+      <div class="in"><p>職場（組織）で行われたTAの研究は標準化された尺度を使ったものが3件しかなく、分析から除外されています。就労移行支援のような場面での効果は、この研究からは言えません。</p></div>
+    </details>
+    <details>
+      <summary>研究の世界での位置づけ</summary>
+      <div class="in"><p>TAは国際的に広く教えられている一方、心理療法の研究の主流ではあまり知られていない、と著者自身が述べています。主要な診療ガイドラインで推奨される治療法として挙がることは、現時点ではほぼありません。日本では心療内科を入り口に、教育や職場研修で独自に普及しました。普及の広さと根拠の強さは別の話です。</p></div>
+    </details>
+    <div class="box"><b>著者自身の解釈</b><p style="margin-top:.3rem">効果の大きさは他の人間性心理学系の療法や認知行動療法と同程度で、改善は治療関係・体験への注目・心理教育といった、多くの療法に共通する要因で説明できる可能性がある、と著者は述べています。TAに独自の技法（脚本分析など）が上乗せした効果は小さいものでした。つまり、TAの価値は「独自の効き目」と同じくらい、「共通要因を実践しやすい言葉にしたこと」にあるのかもしれません。</p></div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="sec reveal" id="s11" data-toc="他の枠組みとの比較">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">11</div><div><div class="kicker">位置づけ</div><h2>他の枠組みと何が違うのか</h2></div></div>
+    <p class="prose">同じ「こじれ」を、それぞれ別の単位で切り取ります。どれか一つが正解なのではなく、見えるものが違います。</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>枠組み</th><th>主に見る単位</th><th>強み</th><th>弱み・注意点</th></tr></thead>
+        <tbody>
+          <tr><td>交流分析</td><td>2人の間の一往復と、その繰り返し</td><td>図にでき、専門外の人とも共通言語にしやすい</td><td>概念の実証が限定的。ラベル貼りに転じやすい</td></tr>
+          <tr><td>認知行動療法</td><td>本人の中の考え・感情・行動のつながり</td><td>効果研究が豊富で、手順が明確</td><td>関係のパターンは扱いが相対的に薄い</td></tr>
+          <tr><td>アサーション</td><td>自分の主張の仕方（攻撃的／受身的／アサーティブ）</td><td>練習しやすく、SSTと組み合わせやすい</td><td>相手側の反応の仕組みまでは説明しない</td></tr>
+          <tr><td>メンタライゼーション</td><td>自他の心の状態を推し量る力</td><td>愛着研究と結びつき、理論的基盤が厚い</td><td>概念が抽象的で、現場の言葉にしにくい</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose cap">Vos & van Rijn（2022）は、自我状態の改善をメンタライゼーションと関連づけて解釈しています。また尺度のレビューでは、スキーマ療法のモードを測る質問紙が自我状態をよく捉えていると評価されました。TAの概念は、実証研究の蓄積が多い枠組みの言葉で読み替えられる部分があるということです。</p>
+  </div>
+</section>
+
+<!-- 12a -->
+<section class="sec reveal" id="s12a" data-toc="特性と文脈への配慮">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">12</div><div><div class="kicker">当てはめる前に</div><h2>特性と文脈を踏まえて読む <span class="badge b-low">確度：低</span></h2></div></div>
+    <p class="prose">TAは主に、言葉の裏を読み合う定型的なコミュニケーションを前提に組み立てられています。就労移行の利用者に当てはめるとき、次の点はTAの文献でも十分に扱われていません。以下は現場での注意点として示すもので、研究で確かめられた知見ではありません。</p>
+    <div class="grid2">
+      <div class="box"><h3>裏のメッセージが届きにくい人</h3><p style="margin-top:.3rem">自閉スペクトラム症の特性がある人など、口調や表情に込められた裏の意味を読み取りにくい人もいます。裏面交流は相手に伝わらないまま、関係のずれだけが残ることがあります。支援者は言葉の表と裏を一致させ、期待は明示的に伝えるのが基本です。</p></div>
+      <div class="box"><h3>特性を「ゲーム」と読まない</h3><p style="margin-top:.3rem">約束を忘れる、同じ質問を繰り返す、急に断るといった行動は、注意・記憶・感覚・不安などの特性や体調から生じていることがあります。繰り返しに見えても、関係の駆け引きと決めつけず、まず環境調整と特性理解の視点で見てください。</p></div>
+      <div class="box"><h3>ACが高いことの意味</h3><p style="margin-top:.3rem">周囲に合わせる振る舞いは、過去の経験や、合わせることを求める職場・社会の規範の中で身につけた適応でもあります。「ACを下げる」ことを目標にするのではなく、合わせる・断るを選べる幅を広げることを目指します。</p></div>
+      <div class="box"><h3>支援者も分析の対象</h3><p style="margin-top:.3rem">TAの図は、利用者だけでなくスタッフ同士や、スタッフと管理者の関係にも同じように当てはまります。救済者になりやすい職場の仕組み（実績目標、少人数での抱え込み）を点検することも、構造としての見方です。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section class="sec reveal" id="s12" data-toc="現場での使い方">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">13</div><div><div class="kicker">役割の境界</div><h2>スタッフが使う範囲と、使わない範囲</h2></div></div>
+    <div class="cc">
+      <div class="box yes">
+        <h3>支援スタッフが行うこと</h3>
+        <ul>
+          <li>面談の後、自分の返事がどの状態から出たかを振り返る</li>
+          <li>堂々めぐりに気づいたら、受け止めてから A→A の質問で流れを変える</li>
+          <li>自分が救済者の頂点に立っていないか、チームで点検する</li>
+          <li>ストロークの配分を、事業所全体の仕組みとして見直す</li>
+          <li>個別支援計画の目標を「契約」の条件で書き直す</li>
+          <li>ケース検討で「性格」ではなく「やりとりの型」を共通言語にする</li>
+        </ul>
+      </div>
+      <div class="box no" style="border-color:var(--rust)">
+        <h3>行わないこと・専門職につなぐこと</h3>
+        <ul>
+          <li>脚本・禁止令・生育歴の掘り下げ</li>
+          <li>TEGの結果で向き不向きや人物を判定すること</li>
+          <li>記録や会議で「ゲームを仕掛ける人」「被害者タイプ」と書くこと</li>
+          <li>利用者にTAの用語を当てはめて説明・指摘すること</li>
+          <li>強い不安や抑うつ、トラウマ反応がうかがえる場合は、主治医・心理職と連携する</li>
+        </ul>
+      </div>
+    </div>
+    <div class="scene">
+      <div class="lab">場面の結び</div>
+      <p class="q">「どうせ私には無理です」</p>
+      <p style="margin-top:.4rem">一往復で見れば C→P の交流。繰り返しで見れば「はい、でも」の入口になりうる流れ。長い目で見れば「自分not OK」の構えかもしれません。けれどスタッフが変えられるのは、次に返す一言と、事業所の環境です。たとえば「無理だと思うくらい、真剣に考えているんですね」とまず受け止め、「どのあたりが一番気になりますか」と A に橋を架ける。そして模擬面接の目標を、本人の言葉で小さく合意し直す。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 13 -->
+<section class="sec band reveal" id="s13" data-toc="まとめ">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">14</div><div><div class="kicker">まとめ</div><h2>持ち帰る6つの要点</h2></div></div>
+    <ol>
+      <li>TAは説明の単位を「人の性格」から「一往復のやりとり」に移す理論。そこから繰り返し（ゲーム）、人生の筋書き（脚本）へと視野を広げる。</li>
+      <li>P・A・Cは年齢ではなく、その瞬間の反応のモード。どの状態にも役立つ出方とこじれる出方がある。</li>
+      <li>矢印が平行なら会話は続き、交差すれば流れが変わり、裏のメッセージが結果を決める。</li>
+      <li>効果研究の数字は中〜大だが、研究の質・追跡期間・著者の立場に限界がある。就労支援の場面での根拠はほぼない。</li>
+      <li>特性による行動を「ゲーム」と読まず、裏のメッセージは使わずに明示的に伝える。</li>
+      <li>スタッフの使い方は、自分の振り返りと共通言語まで。ラベル貼りと深掘りはしない。</li>
+    </ol>
+  </div>
+</section>
+
+<!-- sources -->
+<section class="sec" id="s14" data-toc="出典">
+  <div class="wrap stack">
+    <div class="sechead"><div class="secnum">—</div><div><div class="kicker">情報源</div><h2>出典</h2></div></div>
+    <ul class="refs">
+      <li>Vos, J., & van Rijn, B. (2022). The effectiveness of transactional analysis treatments and their predictors: A systematic literature review and explorative meta-analysis. <i>Journal of Humanistic Psychology</i>. <a href="https://journals.sagepub.com/doi/full/10.1177/00221678221117111" target="_blank" rel="noopener">doi:10.1177/00221678221117111</a> ／ <a href="https://mirep.metanoia.ac.uk/id/eprint/410/" target="_blank" rel="noopener">リポジトリ版（全文PDF）</a></li>
+      <li>Vos, J., & van Rijn, B. (2021). A systematic review of psychometric transactional analysis instruments. <i>Transactional Analysis Journal, 51</i>(2), 127–159. <a href="https://doi.org/10.1080/03621537.2021.1904360" target="_blank" rel="noopener">doi:10.1080/03621537.2021.1904360</a> ／ <a href="https://mirep.metanoia.ac.uk/380" target="_blank" rel="noopener">要旨</a></li>
+      <li>Vos, J., & van Rijn, B. (2021). The evidence-based conceptual model of transactional analysis: A focused review of the research literature. <i>Transactional Analysis Journal</i>. <a href="https://mirep.metanoia.ac.uk/379" target="_blank" rel="noopener">要旨</a></li>
+      <li>Karpman, S. (1968). Fairy tales and script drama analysis. <i>Transactional Analysis Bulletin, 7</i>(26), 39–43. <a href="https://karpmandramatriangle.com/dt_article_only.html" target="_blank" rel="noopener">原論文の再掲（著者サイト）</a></li>
+      <li>和田迪子・渡部麻美・市村美帆・松井豊 (2017). Web調査による新しいエゴグラムの尺度開発. <i>筑波大学心理学研究, 53</i>, 63–71.（日本への導入経緯） <a href="https://tsukuba.repo.nii.ac.jp/record/40757/files/PR_53-63.pdf" target="_blank" rel="noopener">PDF</a></li>
+      <li>東大式エゴグラム（TEG）に関する臨床論文の文献概要（医学書院）：エゴグラム理論の位置づけとTEGの開発経緯。 <a href="https://webview.isho.jp/journal/detail/abs/10.11477/mf.1405902164" target="_blank" rel="noopener">文献概要</a></li>
+      <li>Dusayの恒常仮説とエゴグラムに触れた論文を含む号：<i>International Journal of Transactional Analysis Research & Practice, 13</i>(1), 2022. <a href="https://ijtarp.org/issue/download/1670/IJTARP%2013%281%29%20-%20Complete%20Issue" target="_blank" rel="noopener">号全体PDF</a></li>
+      <li>Martínez Rodríguez, J. M. ほか. Eficacia y efectividad del Análisis Transaccional en trastornos mentales: una revisión sistemática.（TA実践者団体による別の系統的レビュー） <a href="https://revistas.uned.es/index.php/rdp/article/download/41503/31488/130837" target="_blank" rel="noopener">PDF</a></li>
+      <li>以下は原典の書誌のみ（本文では概念の紹介に使用）：Berne, E. (1961). <i>Transactional Analysis in Psychotherapy</i>. Grove Press. ／ Berne, E. (1964). <i>Games People Play</i>. Grove Press. ／ Kahler, T., & Capers, H. (1974). The miniscript. <i>Transactional Analysis Journal, 4</i>(1), 26–42. ／ English, F. (1975). The three-cornered contract. <i>Transactional Analysis Journal, 5</i>, 383–384. ／ Schiff, A. W., & Schiff, J. L. (1971). Passivity. <i>Transactional Analysis Journal, 1</i>(1), 71–78.</li>
+      <li>Choy, A. (1990). The winner's triangle. <i>Transactional Analysis Journal, 20</i>(1). <a href="https://clinpsy.com/threads/article-request-the-winners-triangle.20440/" target="_blank" rel="noopener">書誌の確認先</a></li>
+      <li>Rinn, R., Stamov Roßnagel, C., & Lal, T. N. (2023). Development and validation of the counterscript driver questionnaire (CSD-14). <i>Current Psychology, 42</i>, 15967–15977. <a href="https://link.springer.com/article/10.1007/s12144-019-00470-z" target="_blank" rel="noopener">論文ページ</a></li>
+    </ul>
+    <p class="cap">確度バッジの目安：高＝複数の質の高い研究で一貫して支持／中＝一定の実証研究はあるが限界が大きい／低＝主に臨床観察や理論に基づき、直接の検証が乏しい。</p>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">作成：岡村雄一郎</div></footer>
+
+<script>
+(function(){
+  /* TOC */
+  var secs=[].slice.call(document.querySelectorAll('section[data-toc]'));
+  var list=document.getElementById('toclist'), panel=document.getElementById('tocpanel'), btn=document.getElementById('tocbtn');
+  secs.forEach(function(s,i){
+    var li=document.createElement('li'), b=document.createElement('button');
+    var n=document.createElement('span'); n.textContent=(i<14?String(i+1).padStart(2,'0'):'—');
+    b.appendChild(n); b.appendChild(document.createTextNode(s.getAttribute('data-toc')));
+    b.setAttribute('data-target',s.id);
+    b.addEventListener('click',function(){scrollToSection(s.id);panel.hidden=true;btn.setAttribute('aria-expanded','false');});
+    li.appendChild(b); list.appendChild(li);
+  });
+  btn.addEventListener('click',function(){var o=panel.hidden;panel.hidden=!o;btn.setAttribute('aria-expanded',String(o));});
+  function scrollToSection(id){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+
+  /* progress */
+  var bar=document.getElementById('progress');
+  function prog(){var h=document.documentElement.scrollHeight-window.innerHeight;bar.style.width=(h>0?Math.min(100,window.scrollY/h*100):0)+'%';}
+  window.addEventListener('scroll',prog,{passive:true});prog();
+
+  /* reveal: only elements below the first screen start hidden */
+  if('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.remove('pre');io.unobserve(e.target);}});},{rootMargin:'0px 0px -8% 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){
+      if(el.getBoundingClientRect().top>window.innerHeight){el.classList.add('pre');io.observe(el);}
+    });
+  }
+
+  /* functional ego states */
+  var FN={
+    CP:{name:'CP｜批判的な親（Critical Parent）',plus:'ルールや期限を示す、線を引く、守る',minus:'責める、決めつける、相手の考えを封じる',say:'「提出期限は金曜です。間に合わない場合は木曜までに相談してください」',warn:'「何度言ったら分かるんですか」'},
+    NP:{name:'NP｜養護的な親（Nurturing Parent）',plus:'気づかう、支える、安心を与える',minus:'世話を焼きすぎる、本人の力を奪う',say:'「今日は来られただけで十分ですよ。体調はどうですか」',warn:'「大丈夫、私が全部やっておきますから」'},
+    A:{name:'A｜成人（Adult）',plus:'事実を集める、選択肢を比べる、確かめる',minus:'気持ちを置き去りにした、冷たい情報処理',say:'「求人票の条件で、気になる点を3つ挙げてみましょうか」',warn:'つらさを話している最中に「で、結論は？」'},
+    FC:{name:'FC｜自由な子ども（Free Child）',plus:'好奇心、楽しさ、素直な感情表現',minus:'場をわきまえない、衝動的',say:'「その資格の話、面白いですね。もっと聞かせてください」',warn:'相手の状況を見ずに冗談で流す'},
+    AC:{name:'AC｜順応した子ども（Adapted Child）',plus:'協調する、周囲に合わせる、ルールに従う',minus:'言いたいことを飲み込む、すねる、急に反発する',say:'実習先の手順に合わせて丁寧に作業する',warn:'「…はい、大丈夫です」（本当は大丈夫ではない）'}
+  };
+  var fp=document.getElementById('fnpanel');
+  function showFn(k){
+    var d=FN[k];
+    fp.innerHTML='<h3>'+d.name+'</h3><dl><dt>役立つ出方</dt><dd>'+d.plus+'</dd><dt>こじれる出方</dt><dd>'+d.minus+'</dd><dt>支援場面の例</dt><dd>'+d.say+'</dd><dt>こじれた例</dt><dd>'+d.warn+'</dd></dl>';
+    document.querySelectorAll('.fn-btn').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-fn')===k));});
+  }
+  document.querySelectorAll('.fn-btn').forEach(function(b){b.addEventListener('click',function(){showFn(b.getAttribute('data-fn'));});});
+  showFn('NP');
+
+  /* transactions */
+  var C={L:{P:[70,62],A:[70,132],C:[70,202]},R:{P:[290,62],A:[290,132],C:[290,202]}}, RAD=26;
+  var TX={
+    np:{from:'P',to:'C',col:'teal',cap:'相補交流：矢印は平行（NP → AC）',type:'相補交流',text:'矢印は平行で、会話は続きます。支える意図は伝わりますが、「無理」と「大丈夫」の押し問答になりやすく、「はい、でも」のゲームの入口にもなります。'},
+    cp:{from:'P',to:'C',col:'rust',cap:'相補交流：矢印は平行（CP → AC）',type:'相補交流（否定的なストローク）',text:'NPのときと矢印の位置は同じで、形の上では会話は続きます。違うのは同じPのうちの「機能」です。Aさんが受け取るのは人格への否定に近いメッセージで、ACの萎縮や反発を強めやすい返し方です。続く会話が良い会話とは限りません。'},
+    a:{from:'A',to:'A',col:'teal',cross:true,cap:'交差交流：矢印が交わる（A → A）',type:'交差交流',text:'矢印が交わり（丸印）、P からの反応を期待していた流れがいったん途切れます。話題が「気持ち」から「具体的な心配ごと」に移るきっかけになります。受け止めの一言を先に添えると、置き去りにされた感じを減らせます。'},
+    ul:{from:'A',to:'A',col:'teal',cross:true,ul:{from:'P',to:'C'},cap:'裏面交流：表は A → A、裏は CP → AC',type:'裏面交流',text:'言葉の上では A→A の事務的な質問です（実線）。けれど口調が運ぶ裏の矢印（赤い点線）は CP→AC の「またやらないんでしょう」。Aさんが反応するのは点線のほうで、言葉を整えても伝わってしまいます。'}
+  };
+  var stim=document.getElementById('stim'), resp=document.getElementById('resp'), resp2=document.getElementById('resp2'),
+      xmark=document.getElementById('xmark'), cap=document.getElementById('txcap'), res=document.getElementById('txresult');
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* 円の縁から縁へ、進行方向に対して垂直に off だけずらした線分を返す */
+  function seg(p1,p2,off){
+    var dx=p2[0]-p1[0], dy=p2[1]-p1[1], L=Math.sqrt(dx*dx+dy*dy), ux=dx/L, uy=dy/L, nx=-uy, ny=ux;
+    return [p1[0]+ux*(RAD+3)+nx*off, p1[1]+uy*(RAD+3)+ny*off, p2[0]-ux*(RAD+5)+nx*off, p2[1]-uy*(RAD+5)+ny*off];
+  }
+  function place(l,s){l.setAttribute('x1',s[0].toFixed(1));l.setAttribute('y1',s[1].toFixed(1));l.setAttribute('x2',s[2].toFixed(1));l.setAttribute('y2',s[3].toFixed(1));}
+  function inter(a,b){
+    var d=(a[2]-a[0])*(b[3]-b[1])-(a[3]-a[1])*(b[2]-b[0]); if(Math.abs(d)<1e-6) return null;
+    var t=((b[0]-a[0])*(b[3]-b[1])-(b[1]-a[1])*(b[2]-b[0]))/d;
+    return [a[0]+t*(a[2]-a[0]), a[1]+t*(a[3]-a[1])];
+  }
+  function draw(l,s,marker){
+    place(l,s); l.removeAttribute('marker-end');
+    var len=Math.hypot(s[2]-s[0],s[3]-s[1]);
+    if(reduce){l.setAttribute('marker-end',marker);return;}
+    var dashed=l.id==='resp2';
+    if(dashed){l.style.transition='none';l.style.opacity='0';void l.getBBox();l.style.transition='opacity .45s ease';l.style.opacity='1';setTimeout(function(){l.setAttribute('marker-end',marker);},300);return;}
+    l.style.transition='none'; l.style.strokeDasharray=len; l.style.strokeDashoffset=len; void l.getBBox();
+    l.style.transition='stroke-dashoffset .45s ease'; l.style.strokeDashoffset='0';
+    setTimeout(function(){l.setAttribute('marker-end',marker);l.style.strokeDasharray='';},430);
+  }
+  var sStim=seg(C.L.C,C.R.P,-7); place(stim,sStim);
+  function showTx(k){
+    var d=TX[k];
+    var off=(d.from==='P'&&d.to==='C')?-7:0;
+    var sR=seg(C.R[d.from],C.L[d.to],off);
+    resp.style.stroke='var(--'+d.col+')';
+    draw(resp,sR,d.col==='rust'?'url(#mR)':'url(#mT)');
+    if(d.ul){var s2=seg(C.R[d.ul.from],C.L[d.ul.to],-7);resp2.setAttribute('visibility','visible');draw(resp2,s2,'url(#mR)');}
+    else{resp2.setAttribute('visibility','hidden');resp2.removeAttribute('marker-end');}
+    if(d.cross){var p=inter(sStim,sR); if(p){xmark.setAttribute('cx',p[0].toFixed(1));xmark.setAttribute('cy',p[1].toFixed(1));xmark.setAttribute('visibility','visible');}}
+    else xmark.setAttribute('visibility','hidden');
+    cap.textContent=d.cap;
+    cap.style.fill=d.col==='rust'?'var(--rust)':'var(--ink)';
+    res.innerHTML='<div class="type">'+d.type+'</div><p style="margin-top:.3rem">'+d.text+'</p>';
+    document.querySelectorAll('.opt button').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-opt')===k));});
+  }
+  document.querySelectorAll('.opt button').forEach(function(b){b.addEventListener('click',function(){showTx(b.getAttribute('data-opt'));});});
+  showTx('np');
+  /* スマホで図を固定表示するため、上部バーの高さをCSS変数に渡す */
+  var tb=document.getElementById('topbar');
+  function setTB(){document.documentElement.style.setProperty('--topbar-h',tb.getBoundingClientRect().height+'px');}
+  setTB(); window.addEventListener('resize',setTB);
+
+  /* drama triangle */
+  var TR={
+    per:{t:'迫害者',d:'相手を責め、正しさで押す立場。',ex:'約束が守られないことが続き、スタッフが「何度言えば分かるのか」と強く迫る。あるいは利用者が「スタッフのせいで失敗した」と責める側に回る。',out:'責める代わりに、自分の要望や境界をはっきり伝える（「木曜までに相談がほしい」）。'},
+    res:{t:'救済者',d:'頼まれていないのに、相手の代わりに引き受ける立場。支援職が最も立ちやすい頂点です。',ex:'Aさんが不安そうなので、スタッフが履歴書を代わりに書き、実習先への連絡も済ませる。その場は助かるが、Aさんは「自分ではできない」を確認することになる。報われないとスタッフは迫害者か犠牲者に移りやすい。',out:'手を出す前に「どこまで自分でやりたいですか」と確かめ、本人の力を信じて待つ。'},
+    vic:{t:'犠牲者',d:'自分にはどうにもできない、と無力さを示す立場。',ex:'「どうせ私には無理です」。また、抱え込んだスタッフが「こんなにやっているのに」と燃え尽きて、犠牲者の側に移ることもある。',out:'困っていることを認めたうえで、小さくても自分で選べる部分を一緒に探す。'}
+  };
+  var tp=document.getElementById('tripanel');
+  function showTri(k){
+    var d=TR[k];
+    tp.innerHTML='<h3>'+d.t+'</h3><p style="margin-top:.3rem">'+d.d+'</p><p style="margin-top:.6rem"><b>就労移行での例：</b>'+d.ex+'</p><p style="margin-top:.6rem"><b>降り方の例：</b>'+d.out+'</p><p class="cap" style="margin-top:.6rem">降り方は、Choy（1990）が各頂点の健全な代わりとして示した考え方（自己主張・思いやり・弱さを認めて取り組む）を参考にしています。</p>';
+    document.querySelectorAll('#trisvg .node').forEach(function(n){n.classList.toggle('on',n.getAttribute('data-role')===k);});
+  }
+  document.querySelectorAll('#trisvg .node').forEach(function(n){
+    n.addEventListener('click',function(){showTri(n.getAttribute('data-role'));});
+    n.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();showTri(n.getAttribute('data-role'));}});
+  });
+  showTri('res');
+
+  /* quadrants */
+  var Q={
+    pp:'問題は問題として認めつつ、自分にも相手にも解決に加わる力があるという前提。TAが目指す構えとされます。支援者がまずこの構えでいることが、相手がこちらへ移る足場になります。',
+    pm:'うまくいかないのは周りのせいだ、という前提。支援者側では「この利用者はやる気がない」という見方として現れることがあります。',
+    mp:'悪いのは自分で、周りは正しいという前提。「どうせ私には無理です」はこの構えから出ていることが多い言葉です。励ましだけでは前提は動きにくく、小さな成功体験の積み重ねが要ります。',
+    mm:'自分にも周りにも期待できないという前提。強い無力感や抑うつがうかがえる場合は、構えの問題としてではなく、医療・専門職との連携を優先してください。'
+  };
+  var qp=document.getElementById('qpanel');
+  function showQ(k){qp.innerHTML='<p>'+Q[k]+'</p><p class="cap" style="margin-top:.5rem">基本的構えは「生まれつきの性格」ではなく、経験の中で形づくられ、変わりうる前提とされます。構えを測るLife Position Scaleは、尺度のレビューでまずまず〜良好と評価されています。</p>';
+    document.querySelectorAll('.quad button').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-q')===k));});}
+  document.querySelectorAll('.quad button').forEach(function(b){b.addEventListener('click',function(){showQ(b.getAttribute('data-q'));});});
+  showQ('pp');
+
+  /* egogram example */
+  var NS='http://www.w3.org/2000/svg', eg=document.getElementById('egobars');
+  var labs=['CP','NP','A','FC','AC'], vals=[0.45,0.72,0.55,0.35,0.85];
+  var base=180, top=30, w=60, gap=36, x0=70;
+  function el(t,a,txt){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(txt)e.textContent=txt;eg.appendChild(e);return e;}
+  el('line',{x1:40,y1:base,x2:500,y2:base,style:'stroke:var(--line)','stroke-width':1.5});
+  el('text',{x:36,y:top+4,'text-anchor':'end','font-size':11,style:'fill:var(--ink-soft)'},'高');
+  el('text',{x:36,y:base,'text-anchor':'end','font-size':11,style:'fill:var(--ink-soft)'},'低');
+  labs.forEach(function(l,i){
+    var x=x0+i*(w+gap), h=(base-top)*vals[i];
+    el('rect',{x:x,y:base-h,width:w,height:h,rx:3,style:'fill:'+(i===4?'var(--amber)':'var(--teal)'),opacity:i===4?1:.75});
+    el('text',{x:x+w/2,y:base+20,'text-anchor':'middle','font-size':14,'font-weight':700,style:'fill:var(--ink)'},l);
+  });
+  el('text',{x:x0+4*(w+gap)+w/2,y:base-(base-top)*vals[4]-8,'text-anchor':'middle','font-size':11,style:'fill:var(--ink-soft)'},'例：ACが高い');
+
+  /* CI chart */
+  var ci=document.getElementById('ci');
+  var rows=[['心理的症状',.61,.38,1.44,13],['社会的機能',.69,.48,.90,21],['自己効力感',.88,.64,1.11,27],['自我状態の機能',.70,.23,1.19,4],['全般的なウェルビーイング',.85,.38,1.31,5],['行動',.46,.23,.68,12]];
+  var X0=200,X1=570,MAX=1.6,T=40;
+  function sx(v){return X0+(X1-X0)*v/MAX;}
+  function c(t,a,txt){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(txt)e.textContent=txt;ci.appendChild(e);return e;}
+  [0,.2,.5,.8,1.2,1.6].forEach(function(v){
+    c('line',{x1:sx(v),y1:T-14,x2:sx(v),y2:T+6*44-14,style:'stroke:var(--line)','stroke-width':(v===.2||v===.5||v===.8)?1.2:.6,'stroke-dasharray':(v===.2||v===.5||v===.8)?'4 4':''});
+    c('text',{x:sx(v),y:T+6*44+6,'text-anchor':'middle','font-size':11,style:'fill:var(--ink-soft)'},String(v));
+  });
+  c('text',{x:sx(.2),y:T-20,'text-anchor':'middle','font-size':10,style:'fill:var(--ink-soft)'},'小');
+  c('text',{x:sx(.5),y:T-20,'text-anchor':'middle','font-size':10,style:'fill:var(--ink-soft)'},'中');
+  c('text',{x:sx(.8),y:T-20,'text-anchor':'middle','font-size':10,style:'fill:var(--ink-soft)'},'大');
+  rows.forEach(function(r,i){
+    var y=T+i*44+8;
+    c('text',{x:10,y:y-2,'font-size':13,'font-weight':700,style:'fill:var(--ink)'},r[0]);
+    c('text',{x:10,y:y+14,'font-size':11,style:'fill:var(--ink-soft)'},'k='+r[4]+(r[4]<6?'（研究数が少ない）':''));
+    c('line',{x1:sx(r[2]),y1:y,x2:sx(r[3]),y2:y,style:'stroke:var(--teal)','stroke-width':2.5,'stroke-linecap':'round'});
+    c('circle',{cx:sx(r[1]),cy:y,r:6,style:'fill:var(--amber);stroke:var(--surface)','stroke-width':2});
+    c('text',{x:sx(r[1]),y:y-11,'text-anchor':'middle','font-size':11,'font-weight':700,style:'fill:var(--ink)'},r[1].toFixed(2).replace(/^0/,''));
+  });
+  c('text',{x:(X0+X1)/2,y:T+6*44+24,'text-anchor':'middle','font-size':11,style:'fill:var(--ink-soft)'},'効果量 g（対照群との差）');
+})();
+</script>
+
+</body>
+</html>
